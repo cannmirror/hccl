@@ -89,7 +89,7 @@ HcclResult InsTempAllReduceNHR::KernelRun(const OpParam& param,
     processSize_ = tempAlgParams.sliceSize;
     count_ = tempAlgParams.count;
     dataType_ = param.DataDes.dataType;
-    dataTypeSize_ = SIZE_TABLE[dataType_];
+    dataTypeSize_ = DATATYPE_SIZE_TABLE[dataType_];
 
     if (count_ == 0) {
         HCCL_WARNING("[InsTempAllReduceNHR][KernelRun] data count is 0.");
@@ -302,6 +302,7 @@ HcclResult InsTempAllReduceNHR::GetReduceScatterStepInfoList(std::vector<NHRStep
 
     u32 nSteps = GetNHRStepNum();
     stepInfoList.resize(nSteps);
+    
     for (u32 step = 0; step < nSteps; step++) {
         // 计算通信对象
         u32 deltaRank = 1 << step;
