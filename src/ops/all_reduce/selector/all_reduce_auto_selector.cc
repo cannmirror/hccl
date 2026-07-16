@@ -146,6 +146,11 @@ SelectorStatus AllReduceAutoSelector::SelectCcuScheduleAlgo(const TopoInfoWithNe
     (void)configAlgMap;
     u32 ccuSize = 64;
     HCCL_DEBUG("[AllReduceAutoSelector][%s] start, topoInfo levelNum[%u]", __func__, topoInfo->topoLevelNums);
+    if (topoInfo->topoLevelNums == TOPO_LEVEL_NUM_3) {
+        HCCL_INFO("[AllReduceAutoSelector][%s] ccu schedule is not supported with 3 level topo, reset to default.",
+            __func__);
+        return SelectorStatus::NOT_MATCH;
+    }
     
     // 保序模式不支持CCU_SCHED，需要回退到AICPU
     CHK_PRT_RET(IsNeedStrictModeForOrderPreserved(opParam, topoInfo->userRankSize),
@@ -185,7 +190,7 @@ SelectorStatus AllReduceAutoSelector::SelectCcuScheduleAlgo(const TopoInfoWithNe
             } else if (dataSize <= AR_FLATTEN_MAX_DATA_SIZE && topoInfo->userRankSize <= ccuSize && (!IsInputOutputOverlap(opParam))) {
                 selectAlgName = "CcuAllReduceMesh1DMem2Mem";
                 return SelectorStatus::MATCH;
-            } else if (dataSize <= 64 * 1024 * 1024 && topoInfo->userRankSize < ccuSize) {
+            } else if (dataSize <= CCU_PARALLEL_MAX_DATA_SIZE && topoInfo->userRankSize < ccuSize) {
                 selectAlgName = "CcuAllReduceSequenceMesh1D";
                 return SelectorStatus::MATCH;
             } else if(IsSmallDataCCU(dataSize, topoInfo->userRankSize)){//64M以下跑ccu
